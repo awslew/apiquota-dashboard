@@ -4,7 +4,7 @@
 （https://app.opencode.ai/workspace/<workspaceId>/usage），需在 config.yaml 配 cookie + usage_url。
 
 数据真实性铁律：
-  - 禁止任何本地推算：不读 路由工具 日志 / 本地代理端口 / 本地代理端口 / 任何本地代理端口数据。
+  - 禁止任何本地推算：不读任何本地代理/路由日志、不读任何本地代理端口数据。
   - 未配 cookie / 解析失败 / HTTP 非 200 / 页面结构变化 → 一律返回 source_status='不可用'。
   - 绝不硬编码已用金额（只硬编码官方限额常量，来自 opencode.ai 官方文档）。
 """

@@ -122,7 +122,7 @@ providers/              # 各供应商数据源（quota.py 统一模型）
 dashboard_ui/           # 浏览器仪表盘（本地 HTTP + 前端页面）+ 托盘
 install_autostart.py    # 开机自启 register/unregister/status
 update_opencode.py      # 批量更新 OpenCode Go cookie/usage_url
-docs/                   # 调研 / 数据源确认 / 验收记录
+docs/                   # 调研 / 数据源确认 / screenshot.png
 LICENSE                 # MIT
 ```
 
