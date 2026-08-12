@@ -24,9 +24,11 @@ A Windows tray-resident dashboard that shows the live quota and usage remaining 
 
 ## 截图 / Screenshots
 
-> 截图待补充（当前仓库未内置截图）。界面为暗色玻璃拟态四卡：DeepSeek（余额 ¥）· OpenRouter（余额 $ / 已用 / 总量 / 今日）· OpenCode Go（5小时 / 本周 / 本月 百分比 + 重置倒计时）· Codex（5小时 / 本周 / 本月 百分比 + 重置倒计时）。
+![API 配额仪表盘](docs/screenshot.png)
 
-> Screenshots to be added. Dark-glass four-card UI: DeepSeek (CNY balance) · OpenRouter (USD balance/used/total/today) · OpenCode Go (rolling/weekly/monthly % + reset countdown) · Codex (rolling/weekly/monthly % + reset countdown).
+界面为暗色玻璃拟态四卡：DeepSeek（余额 ¥）· OpenRouter（余额 $ / 已用 / 总量 / 今日）· OpenCode Go（5小时 / 本周 / 本月 百分比 + 重置倒计时）· Codex（5小时 / 本周 / 本月 百分比 + 重置倒计时）。
+
+A dark-glass four-card dashboard: DeepSeek (CNY balance) · OpenRouter (USD balance/used/total/today) · OpenCode Go (rolling/weekly/monthly % + reset countdown) · Codex (rolling/weekly/monthly % + reset countdown).
 
 ## 安装 / Install
 
