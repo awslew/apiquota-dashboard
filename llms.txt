@@ -1,0 +1,100 @@
+# apiquota-dashboard
+
+> Windows 系统托盘常驻的 **AI API 配额仪表盘**：实时显示 **DeepSeek / OpenRouter / OpenCode Go / Codex** 四家的配额与用量余量。点托盘图标打开浏览器仪表盘。所有数值**直接来自各供应商官方数据源**（官方接口或官方登录态页面），不读本地端口、不读代理日志、不做任何推算——官方源拿不到就如实显示「官方数据源不可用」。
+
+## 项目定位
+
+- **给谁用**：同时订阅/充值了多家 AI 服务、想在一屏里看余额与窗口余量的个人开发者（Windows）。
+- **解决什么问题**：四家的额度查询入口各不相同（余额接口 / credits 接口 / 登录态控制台页 / 登录态后端接口），且海外接口要走代理。本项目把它们归一化成同一个数据模型，后台定时刷新，单家失败不影响其他三家。
+- **不是什么**：不做费用统计、不做趋势分析、不代理你的请求；**不编造数字**——官方没有接口的能力就如实说不支持。
+
+## 快速开始
+
+需要 **Windows + Python 3.9+**（开发于 3.11）。
+
+```bash
+pip install -r requirements.txt
+
+# 1) 复制配置模板并填入自己的 key（config.yaml 已 .gitignore，绝不提交）
+copy config.example.yaml config.yaml
+
+# 2) 无界面验证：跑一轮刷新打印四家结果后退出
+python main.py --selftest
+
+# 3) 正常启动：托盘 + 本地浏览器仪表盘
+python main.py
+```
+
+开机自启与退出：
+
+```bash
+python install_autostart.py register      # 注册（写 HKCU Run，用 pythonw 静默启动）
+python install_autostart.py status        # 查看当前状态
+python install_autostart.py unregister    # 取消
+# 退出程序：托盘右键 → 退出
+```
+
+OpenCode Go 的 cookie 过期后换一份（只改 config.yaml 里那两行，保留其余配置与注释）：
+
+```bash
+python update_opencode.py "<新cookie>" "<新用量页URL>"
+```
+
+## 核心能力
+
+- 托盘常驻，后台定时刷新（默认 **3 分钟**，`refresh_interval_minutes` 可配，最小 1 分钟），单供应商失败不影响其他
+- 点托盘图标 → 打开浏览器仪表盘（本地 HTTP，仅 `127.0.0.1`）；页面每 15s 自动拉取，每秒倒计时
+- **打开即强制刷新**（`refresh_now()`），保证看到最新官方数据
+- 失败降级：保留最近一次官方数据并标注「刷新失败·旧数据」；从未成功过则如实显示「官方数据源不可用」
+- 四张暗色玻璃拟态卡片：DeepSeek（余额 ¥）· OpenRouter（余额 $ / 已用 / 总量）· OpenCode Go（5 小时 / 本周 / 本月 百分比 + 重置倒计时）· Codex（5 小时 / 本周 / 本月 百分比 + 重置倒计时）
+- 无界面自检：`python main.py --selftest`
+
+## 四家数据源（官方源一览）
+
+| 供应商 | 计费类型 | 官方数据源 |
+|---|---|---|
+| DeepSeek | balance | `GET https://api.deepseek.com/user/balance`（域内直连；官方 API **不提供**今日用量） |
+| OpenRouter | balance | `GET https://openrouter.ai/api/v1/credits`（余额 = `total_credits` − `total_usage`；海外需代理） |
+| OpenCode Go | subscription | 登录态控制台用量页（`cookie` + `usage_url`；**没有公开的用量查询 API**） |
+| Codex | subscription | `GET https://chatgpt.com/backend-api/wham/usage`（用 `~/.codex/auth.json` 的 OAuth access_token + account_id 头） |
+
+## 关键约束与已知取舍（如实）
+
+- **端口不是固定的**：本地服务用 `ThreadingHTTPServer(("127.0.0.1", 0))`，**由系统分配空闲端口**，启动时打印一行中文提示说明实际地址（`[main] 本地仪表盘地址：http://127.0.0.1:<port>/（托盘点击打开）`）。启动输出里那行就是唯一权威来源。
+- **只绑定 `127.0.0.1`**，仅本机可访问；纯标准库 `http.server` + 原生前端，无第三方 Web 依赖。
+- **配置缺失即退出**：找不到 `config.yaml`（或解析失败 / 顶层结构不对）时打印中文引导与可复制的复制命令，然后以返回码 1 退出——**绝不伪造数字、绝不用假数据顶替**。`--selftest` 也会先加载配置，缺配置同样退出 1。
+- **配置文件位置**：默认是本项目目录下的 `config.yaml`（基于 `__file__` 解析，与当前工作目录、盘符无关），整个目录可整体移动 / 改名 / 换盘。
+- **OpenCode Go 的 cookie 会过期**：失效时该卡片显示「官方数据源不可用」，重新复制一份即可；该供应商没有 API key 可用的用量接口（`api_key` 只对推理接口有效）。
+- **Codex 不需要 key**：认证就是本机 Codex CLI 的登录态 `~/.codex/auth.json`（先在本机跑过 `codex` 登录），程序**只读**该文件、绝不写回；token 过期时重跑 `codex` 登录。
+- **海外接口一般需要代理**（OpenRouter / OpenCode Go / Codex），DeepSeek 直连。代理填在 `config.yaml` 的各供应商 `proxy` 字段里。
+- **网络抖动会发生**：`chatgpt.com` 偶发超时，provider 内会重试；失败由调度器保留旧数据并标 `refresh_failed`。
+- **日志脱敏**：只打印 key 的前 6 位 + `***`。无控制台（`pythonw`）运行时 stdout/stderr 被重定向到程序目录的 `dashboard.log`。
+- **平台**：面向 Windows（托盘与开机自启走 HKCU Run）。
+
+## 授权与第三方归属
+
+- 本项目自身以 **MIT** 发布，见 [LICENSE](./LICENSE)。
+- **Codex 配额的获取方案是复刻的**：`providers/codex.py` 头部注释写明该做法来自开源项目
+  **steipete/CodexBar** 的 `CodexOAuthUsageFetcher`（读 `~/.codex/auth.json` 的 OAuth access_token，
+  只向 `chatgpt.com` 官方域名请求 `backend-api/wham/usage`）。CodexBar 为 **MIT，
+  Copyright (c) 2026 Peter Steinberger**。
+- 调研阶段参考过的其它开源实现的许可证表格见
+  [docs/github-research.md](./docs/github-research.md) 末尾。
+
+## 文档索引
+
+- [README.md](./README.md) —— 主文档（中英）：功能、安装、运行、四家供应商怎么配、数据来源、FAQ
+- [config.example.yaml](./config.example.yaml) —— 配置模板（各供应商字段与注释）
+- [docs/数据源确认.md](./docs/数据源确认.md) —— 四家官方数据源的实测返回、解析要点与硬约束
+- [docs/github-research.md](./docs/github-research.md) —— 调研记录与许可证表格
+- [requirements.txt](./requirements.txt) —— `pystray` / `Pillow` / `requests` / `PyYAML`
+- [docs/screenshot.png](./docs/screenshot.png) —— 界面截图
+- [AGENTS.md](./AGENTS.md) —— 在此仓库开发时的约定（面向 coding agent）
+
+## Optional
+
+- [install_autostart.py](./install_autostart.py) —— 开机自启：`register` / `unregister` / `status`
+- [update_opencode.py](./update_opencode.py) —— 批量替换 OpenCode Go 的 cookie 与 usage_url
+- [providers/quota.py](./providers/quota.py) —— 统一数据模型（`Quota` / `WindowUsage` / `SOURCE_OK`）
+- [dashboard_ui/server.py](./dashboard_ui/server.py) —— 本地 HTTP 路由（`/`、`/app.css`、`/app.js`、`/api/quota`）
+- [LICENSE](./LICENSE) —— MIT
