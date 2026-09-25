@@ -1,8 +1,8 @@
 # API 配额仪表盘（API Quota Dashboard）
 
-Windows 系统托盘常驻工具：实时显示 **DeepSeek / OpenRouter / OpenCode Go / Codex** 四家 AI API 的配额与用量余量。点击托盘图标打开浏览器仪表盘，数据全部来自各供应商**官方数据源**，不读任何本地端口 / 日志 / 代理推算。
+同时用 DeepSeek、OpenRouter、OpenCode Go 和 Codex，余额与使用限额却散在四个地方。开始长任务前，你很难一眼知道哪个服务的额度还充足。这个 Windows 托盘工具把**余额和剩余额度集中到一页**，点图标就能看；数值直接来自各家的**官方数据源**，拿不到就如实显示不可用。
 
-A Windows tray-resident dashboard that shows the live quota and usage remaining for **DeepSeek / OpenRouter / OpenCode Go / Codex**. Click the tray icon to open the browser dashboard. All data comes from each provider's **official source** — nothing is inferred from local ports, logs, or proxies.
+Using several AI services? Check DeepSeek/OpenRouter balances and OpenCode Go/Codex usage limits in one Windows tray dashboard before starting a long task. Values come from official sources; unavailable data is shown as unavailable.
 
 ---
 
